@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Issue Book Form</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <style>
+        body {
+          font-family: 'Segoe UI', sans-serif;
+          background: #f1f5f9;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+        }
+
+        .form-container {
+          background: white;
+          padding: 30px 40px;
+          border-radius: 12px;
+          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+          max-width: 400px;
+          width: 100%;
+        }
+
+        h2 {
+          text-align: center;
+          margin-bottom: 25px;
+          color: #1e293b;
+        }
+
+        .form-group {
+          margin-bottom: 20px;
+        }
+
+        .form-group label {
+          display: block;
+          margin-bottom: 8px;
+          font-weight: 600;
+          color: #334155;
+        }
+
+        .form-group input,
+        .form-group select {
+          width: 100%;
+          padding: 10px;
+          border: 1px solid #cbd5e1;
+          border-radius: 8px;
+          font-size: 15px;
+          background-color: #f8fafc;
+        }
+
+        button {
+          width: 100%;
+          padding: 12px;
+          background: #3b82f6;
+          color: white;
+          font-size: 16px;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: 0.3s ease;
+        }
+
+        button:hover {
+          background: #2563eb;
+        }
+    </style>
+</head>
+<body>
+
+<div class="form-container">
+    <h2>Issue Book</h2>
+    <form id="issueForm">
+        <div class="form-group">
+            <label for="regNo">Student Reg. Number</label>
+            <input type="text" id="regNo" name="regNo" required/>
+        </div>
+
+        <div class="form-group">
+            <label for="bookName">Book Name</label>
+            <input type="text" id="bookName" name="bookName" required/>
+        </div>
+
+        <div class="form-group">
+            <label for="genre">Select Genre</label>
+            <select id="genre" name="genre" required>
+                <option value="">Loading genres...</option>
+            </select>
+        </div>
+
+        <button type="submit">Submit</button>
+    </form>
+</div>
+
+<script>
+    const token = localStorage.getItem("authToken"); // If token required
+
+    // Load genres dynamically from API
+    async function fetchGenres() {
+      try {
+        const res = await fetch("http://127.0.0.1:5005/get-genre", {
+          headers: { Authorization: "Bearer " + token }
+        });
+        const genres = await res.json();
+        const select = document.getElementById("genre");
+        select.innerHTML = `<option value="">Select genre</option>`;
+        genres.forEach(g => {
+          const option = document.createElement("option");
+          option.value = g;
+          option.textContent = g;
+          select.appendChild(option);
+        });
+      } catch (err) {
+        console.error("Error fetching genres:", err);
+        document.getElementById("genre").innerHTML = `<option value="">Failed to load</option>`;
+      }
+    }
+
+    // Submit form data to backend
+    document.getElementById("issueForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const formData = {
+        regNo: document.getElementById("regNo").value,
+        bookName: document.getElementById("bookName").value,
+        genre: document.getElementById("genre").value,
+      };
+
+      try {
+        const res = await fetch("http://127.0.0.1:5005/issue-book", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token
+          },
+          body: JSON.stringify(formData)
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          alert(data.message || "Book issued successfully!");
+          document.getElementById("issueForm").reset();
+        } else {
+          alert(data.message || "Failed to issue book.");
+        }
+      } catch (err) {
+        alert("Error: " + err.message);
+      }
+    });
+
+    // Load genres on page load
+    window.onload = fetchGenres;
+</script>
+</body>
+</html>

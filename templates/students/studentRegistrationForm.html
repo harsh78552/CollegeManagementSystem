@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Student Registration</title>
+    <style>
+        body {
+          font-family: Arial, sans-serif;
+          background: #f4f4f4;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          min-height: 100vh;
+          margin: 0;
+        }
+
+        form {
+          background: white;
+          padding: 20px 30px;
+          border-radius: 8px;
+          box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+          margin-bottom: 20px;
+        }
+
+        input,
+        textarea {
+          width: 100%;
+          padding: 10px;
+          margin: 8px 0 16px;
+          border: 1px solid #ccc;
+          border-radius: 4px;
+        }
+
+        button {
+          background-color: #5c6bc0;
+          color: white;
+          border: none;
+          padding: 10px 15px;
+          cursor: pointer;
+          border-radius: 4px;
+        }
+
+        button:hover {
+          background-color: #3f51b5;
+        }
+
+        .message {
+          margin-top: 10px;
+          font-weight: bold;
+        }
+
+
+    </style>
+</head>
+<body>
+<form id="registerForm">
+    <h2>Student Registration Form</h2>
+
+    <input type="text" id="name" placeholder="Name" required/>
+    <input type="text" id="contact" placeholder="Contact" required/>
+    <input type="email" id="email" placeholder="Email" required/>
+    <input type="password" id="password" placeholder="Password" required/>
+    <input type="text" id="branch" placeholder="branch" required/>
+    <input type="text" id="registeration_no" placeholder="registeration_no" required/>
+    <input type="text" id="year" placeholder="year" required/>
+    <input type="text" id="semester" placeholder="semester" required/>
+    <textarea id="address" placeholder="Address" rows="3" required></textarea>
+    <input type="text" id="blood_group" placeholder="blood_group" required/>
+
+    <button type="submit">Register</button>
+    <div class="message" id="responseMsg"></div>
+</form>
+<script>
+    const form = document.getElementById("registerForm");
+    const messageBox = document.getElementById("responseMsg");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const data = {
+        name: document.getElementById("name").value,
+        contact: document.getElementById("contact").value,
+        email: document.getElementById("email").value,
+        password: document.getElementById("password").value,
+        branch: document.getElementById("branch").value,
+        registeration_no: document.getElementById("registeration_no").value,
+        year: document.getElementById("year").value,
+        semester: document.getElementById("semester").value,
+        address: document.getElementById("address").value,
+        blood_group: document.getElementById("blood_group").value,
+      };
+
+      try {
+        const response = await fetch("http://localhost:5005/student-registration", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        });
+
+        const result = await response.json();
+        alert(result.message);
+
+        if (result.status === "success") {
+          form.reset();
+        }
+      } catch (error) {
+        alert("Something went wrong. Please try again.");
+      }
+    });
+</script>
+</body>
+</html>

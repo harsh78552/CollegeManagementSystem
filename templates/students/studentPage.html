@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Student Dashboard - JIET</title>
+
+    <script>
+        const token = localStorage.getItem("authToken");
+
+        function redirectToLogin() {
+          localStorage.removeItem("authToken");
+          window.location.href = "../students_login.html";
+        }
+
+        if (token) {
+          try {
+            const parts = token.split(".");
+            if (parts.length !== 3) throw new Error("Invalid token format");
+
+            const payload = JSON.parse(atob(parts[1]));
+            const expiry = payload.exp;
+            const role = payload.role;
+            const now = Math.floor(Date.now() / 1000);
+
+            if (now > expiry || role !== "student") {
+              redirectToLogin();
+            }
+          } catch (err) {
+            console.error("Token Error:", err);
+            redirectToLogin();
+          }
+        } else {
+          redirectToLogin();
+        }
+    </script>
+
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
+    <!-- Your full CSS styles (unchanged) -->
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Poppins", sans-serif; }
+        body { display: flex; flex-direction: column; min-height: 100vh; background: #ecf0f3; overflow-x: hidden; }
+
+        .sidebar {
+          width: 250px; background-color: #2d3436; color: white;
+          display: flex; flex-direction: column; padding-top: 80px;
+          position: fixed; height: 100vh; left: 0; top: 0; box-shadow: 3px 0 10px rgba(0,0,0,0.1);
+          transform: translateX(0); z-index: 1001; transition: transform 0.3s ease;
+        }
+
+        .sidebar.hidden { transform: translateX(-260px); }
+        .sidebar h2 { text-align: center; font-size: 22px; margin-bottom: 30px; border-bottom: 1px solid #444; padding-bottom: 10px; }
+        .sidebar a {
+          padding: 15px 30px; color: white; text-decoration: none; display: flex; align-items: center; gap: 15px; font-weight: 500;
+        }
+        .sidebar a:hover { background-color: #636e72; }
+
+        .topbar {
+          position: fixed; top: 0; left: 250px; right: 0; height: 70px; background-color: #0984e3;
+          color: white; display: flex; justify-content: space-between; align-items: center; padding: 0 30px;
+          z-index: 1000; box-shadow: 0 4px 8px rgba(0,0,0,0.1); transition: left 0.3s ease;
+        }
+
+        .hamburger { font-size: 1.5rem; cursor: pointer; display: none; }
+        .main-content {
+          margin-left: 250px; margin-top: 70px; padding: 30px;
+          height: calc(100vh - 70px); overflow-y: auto; transition: margin-left 0.3s ease;
+        }
+
+        .right-controls { display: flex; align-items: center; gap: 20px; }
+        .student-name { font-weight: bold; color: white; }
+
+        .theme-toggle input { display: none; }
+        .theme-toggle label { display: flex; gap: 8px; cursor: pointer; color: white; }
+
+        @media (max-width: 768px) {
+          .sidebar { transform: translateX(-260px); }
+          .sidebar.visible { transform: translateX(0); }
+          .topbar { left: 0; }
+          .hamburger { display: block; }
+          .main-content { margin-left: 0; }
+        }
+
+        .section-title {
+          font-size: 32px; font-weight: 700; color: #0984e3; margin-bottom: 30px; text-align: center;
+        }
+
+        .profile-card {
+          background: white; border-radius: 15px; padding: 40px 50px;
+          box-shadow: 0 15px 30px rgba(9,132,227,0.15); max-width: 650px; margin: 0 auto;
+        }
+
+        .profile-row {
+          display: flex; align-items: center; gap: 20px;
+          padding: 18px 0; border-bottom: 1px solid #f0f0f0;
+        }
+
+        .label { flex: 1.2; font-weight: 600; color: #636e72; font-size: 18px; }
+        .value input {
+          flex: 2; font-size: 18px; padding: 6px 10px;
+          border: 1px solid #ccc; border-radius: 5px; width: 100%;
+        }
+
+        .value input[readonly] { background-color: #eee; }
+
+        .btn-update, .btn-submit {
+          background-color: #0984e3; border: none; padding: 10px 20px;
+          margin: 0 5px; color: white; font-weight: bold;
+          cursor: pointer; border-radius: 5px;
+        }
+
+        body.dark { background-color: #1e272e; color: #f5f6fa; }
+        body.dark .sidebar { background-color: #1e1e2f; }
+        body.dark .topbar { background-color: #0f3460; }
+        body.dark .profile-card { background: #2f3542; color: #f1f2f6; }
+        body.dark .label { color: #ced6e0; }
+        body.dark .value input { background-color: #57606f; color: #f1f2f6; border-color: #747d8c; }
+    </style>
+
+</head>
+
+<body>
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+    <h2>Student Panel</h2>
+    <a href="#" id="profileBtn">Profile</a>
+    <a href="#" id="attendanceBtn">Attendance</a>
+    <a href="#" id="feesBtn">Fees</a>
+    <a href="#" id="seeResultBtn">Result</a>
+    <a href="#" id="seePYQ">PYQ paper</a>
+</div>
+
+<!-- Topbar -->
+<div class="topbar" id="topbar">
+    <div class="title"><i class="fas fa-bars hamburger" id="hamburger"></i> JODHPUR INSTITUTE OF ENGINEERING &
+        TECHNOLOGY
+    </div>
+    <div class="right-controls">
+        <span class="student-name" id="studentName">Welcome, Student</span>
+        <div class="theme-toggle">
+            <input type="checkbox" id="themeSwitch"/>
+            <label for="themeSwitch"><i class="fas fa-sun"></i><i class="fas fa-moon"></i></label>
+        </div>
+        <button onclick="logoutUser()"
+                style="background-color:red; border:none; color:white; padding:8px 16px; border-radius:5px;">Logout
+        </button>
+    </div>
+</div>
+
+<div class="main-content" id="mainContent"></div>
+
+
+<!-- Your JavaScript code -->
+<script>
+    const sidebar = document.getElementById("sidebar");
+    const hamburger = document.getElementById("hamburger");
+    const studentName = document.getElementById("studentName");
+    const mainContent = document.getElementById("mainContent");
+    const seeResult = document.getElementById("seeResultBtn");
+
+    hamburger.addEventListener("click", () => sidebar.classList.toggle("visible"));
+
+    document.addEventListener("click", (e) => {
+      if (window.innerWidth <= 768 && sidebar.classList.contains("visible") && !sidebar.contains(e.target) && e.target !== hamburger) {
+        sidebar.classList.remove("visible");
+      }
+    });
+
+    window.onload = async () => {
+      try {
+        const res = await fetch("http://127.0.0.1:5005/student-profile", {
+          headers: { Authorization: "Bearer " + token }
+        });
+        const data = await res.json();
+        studentName.textContent = "Welcome, " + data.name;
+      } catch {
+        window.location.replace("../students_login.html");
+      }
+
+      if (localStorage.getItem("theme") === "dark") {
+        document.body.classList.add("dark");
+        document.getElementById("themeSwitch").checked = true;
+      }
+    };
+
+    document.getElementById("themeSwitch").addEventListener("change", () => {
+      document.body.classList.toggle("dark");
+      localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
+    });
+
+    async function logoutUser() {
+      try {
+        await fetch("http://127.0.0.1:5005/student-logout", {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer " + token,
+            "Content-Type": "application/json",
+          },
+        });
+      } finally {
+        localStorage.removeItem("authToken");
+        window.location.replace("../students_login.html");
+      }
+    }
+
+    document.getElementById("profileBtn").addEventListener("click", async (e) => {
+      e.preventDefault();
+      try {
+        const res = await fetch("http://127.0.0.1:5005/student-profile", {
+          headers: { Authorization: "Bearer " + token }
+        });
+        const data = await res.json();
+        mainContent.innerHTML = `
+          <h2 class="section-title">Profile Details</h2>
+          <div class="profile-card">
+            ${generateProfileRows(data)}
+            <div style="text-align:center; margin-top:20px;">
+              <button class="btn-update" id="updateBtn">Update</button>
+              <button class="btn-submit" id="submitBtn" style="display:none;">Submit</button>
+            </div>
+          </div>`;
+        attachProfileUpdateListeners();
+      } catch {
+        mainContent.innerHTML = `<p>Error loading profile.</p>`;
+      }
+    });
+
+    function generateProfileRows(data) {
+      const fields = [
+        { label: "Name", key: "name" },
+        { label: "Contact", key: "contact" },
+        { label: "Email", key: "email" },
+        { label: "Branch", key: "branch" },
+        { label: "Registration No", key: "registeration_no" },
+        { label: "Year", key: "year" },
+        { label: "Semester", key: "semester" },
+        { label: "Address", key: "address" },
+        { label: "Blood Group", key: "blood_group" },
+      ];
+      return fields.map(f => `
+        <div class="profile-row">
+          <div class="label">${f.label}</div>
+          <div class="value">
+            <input type="text" name="${f.key}" value="${data[f.key] || ""}" readonly />
+          </div>
+        </div>`).join("");
+    }
+
+    function attachProfileUpdateListeners() {
+      const updateBtn = document.getElementById("updateBtn");
+      const submitBtn = document.getElementById("submitBtn");
+
+      updateBtn.addEventListener("click", () => {
+        const editableFields = ["contact", "year", "semester", "address", "blood_group"];
+        document.querySelectorAll(".value input").forEach(input => {
+          if (editableFields.includes(input.name)) {
+            input.removeAttribute("readonly");
+            input.style.backgroundColor = "#fff";
+          }
+        });
+        submitBtn.style.display = "inline-block";
+      });
+
+      submitBtn.addEventListener("click", async () => {
+        const inputs = document.querySelectorAll(".value input");
+        const updatedData = {};
+        inputs.forEach(input => updatedData[input.name] = input.value);
+
+        try {
+          const res = await fetch("http://127.0.0.1:5005/student-update", {
+            method: "PUT",
+            headers: {
+              Authorization: "Bearer " + token,
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify(updatedData)
+          });
+
+          const result = await res.json();
+          alert(result.message || "Profile updated!");
+          document.getElementById("profileBtn").click();
+        } catch {
+          alert("Something went wrong while updating.");
+        }
+      });
+    }
+
+    document.getElementById("attendanceBtn").addEventListener("click", () => {
+      window.location.href = "studentAttendance.html";
+    });
+
+    document.getElementById("feesBtn").addEventListener("click", () => {
+      mainContent.innerHTML = `<h2 class="section-title">Fees</h2><p>Fees details will appear here.</p>`;
+    });
+
+
+
+    seeResult.addEventListener("click", () => {
+      window.location.href = "seeMarksheets.html";
+    });
+    seePYQ.addEventListener("click", () => {
+      window.location.href = "seePYQ.html";
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Admin Upload Page</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet"/>
+    <style>
+        * {
+          box-sizing: border-box;
+        }
+
+        body {
+          font-family: 'Poppins', sans-serif;
+          background: linear-gradient(to right, #e0f7fa, #ffffff);
+          padding: 40px 20px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          min-height: 100vh;
+        }
+
+        .form-container {
+          background: #ffffff;
+          padding: 30px;
+          border-radius: 16px;
+          box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+          max-width: 500px;
+          width: 100%;
+        }
+
+        .form-container h2 {
+          text-align: center;
+          margin-bottom: 25px;
+          color: #333;
+        }
+
+        .form-group {
+          margin-bottom: 20px;
+        }
+
+        label {
+          display: block;
+          font-weight: 600;
+          margin-bottom: 8px;
+        }
+
+        select, input[type="text"], input[type="file"] {
+          width: 100%;
+          padding: 10px;
+          border: 1px solid #ccc;
+          border-radius: 8px;
+          font-size: 15px;
+        }
+
+        button {
+          width: 100%;
+          padding: 12px;
+          font-size: 16px;
+          border: none;
+          border-radius: 8px;
+          background-color: #00796b;
+          color: white;
+          font-weight: 600;
+          cursor: pointer;
+          transition: background 0.3s;
+        }
+
+        button:hover {
+          background-color: #004d40;
+        }
+
+        .message {
+          margin-top: 15px;
+          text-align: center;
+          font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+<div class="form-container">
+    <h2>Upload PYQ Paper</h2>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="semester">Semester</label>
+            <select id="semester" required>
+                <option value="" disabled selected>Select Semester</option>
+                <option value="1">Semester 1</option>
+                <option value="2">Semester 2</option>
+                <option value="3">Semester 3</option>
+                <option value="4">Semester 4</option>
+                <option value="5">Semester 5</option>
+                <option value="6">Semester 6</option>
+                <option value="7">Semester 7</option>
+                <option value="8">Semester 8</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="year">Exam Year</label>
+            <input type="text" id="year" placeholder="e.g., 2024" required/>
+        </div>
+
+        <div class="form-group">
+            <label for="paperType">Paper Type</label>
+            <select id="paperType" required>
+                <option value="" disabled selected>Select Type</option>
+                <option value="1st Mid-Term">1st Mid-Term</option>
+                <option value="2nd Mid-Term">2nd Mid-Term</option>
+                <option value="Main Paper">Main Paper</option>
+                <option value="Back Paper">Back Paper</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="subject">Subject Name</label>
+            <input type="text" id="subject" placeholder="e.g., Mathematics" required/>
+        </div>
+
+        <div class="form-group">
+            <label for="file">Upload PDF File</label>
+            <input type="file" id="file" accept=".pdf" required/>
+        </div>
+
+        <button type="submit">Upload Paper</button>
+        <div class="message" id="responseMessage"></div>
+    </form>
+</div>
+
+<script>
+    const form = document.getElementById("uploadForm");
+    const message = document.getElementById("responseMessage");
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const semester = document.getElementById("semester").value;
+      const year = document.getElementById("year").value;
+      const paperType = document.getElementById("paperType").value;
+      const subject = document.getElementById("subject").value;
+      const file = document.getElementById("file").files[0];
+
+      if (!file || file.type !== "application/pdf") {
+        message.textContent = "❌ Please upload a valid PDF file.";
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("semester", semester);
+      formData.append("year", year);
+      formData.append("paperType", paperType);
+      formData.append("subject", subject);
+      formData.append("file", file);
+
+      try {
+        const res = await fetch("http://127.0.0.1:5005/upload-paper", {
+          method: "POST",
+          body: formData,
+        });
+
+        const data = await res.json();
+        console.log(data)
+
+        if (res.ok) {
+          message.textContent = "✅ Paper uploaded successfully!";
+          form.reset();
+        } else {
+          message.textContent = `❌ Error: ${data.message || "Upload failed."}`;
+        }
+      } catch (err) {
+        console.error(err);
+        message.textContent = "❌ Network error. Try again.";
+      }
+    });
+</script>
+
+</body>
+</html>

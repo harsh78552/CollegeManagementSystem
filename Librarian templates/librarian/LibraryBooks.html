@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Library Book List</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <script>
+        const token = localStorage.getItem("authToken");
+         if (token) {
+           const payload = JSON.parse(atob(token.split('.')[1]));
+           const expiry = payload.exp;
+           const role=payload.role;
+           const now = Math.floor(Date.now() / 1000);
+           if (now > expiry||role!=="librarian") {
+             localStorage.removeItem("authToken");
+             window.location.href = "../librarianLogin.html";
+           }
+         } else {
+           window.location.href = "../librarianLogin.html";
+         }
+    </script>
+    <style>
+        :root {
+          --bg: #f3f4f6;
+          --card: #ffffff;
+          --dark: #1f2937;
+          --muted: #6b7280;
+          --accent: #e2e8f0;
+          --hover: #2563eb;
+          --hover-text: #fff;
+        }
+
+        body {
+          margin: 0;
+          font-family: 'Segoe UI', sans-serif;
+          background: var(--bg);
+          display: flex;
+          min-height: 100vh;
+        }
+
+        #genreSidebar {
+          width: 220px;
+          background: var(--card);
+          padding: 20px;
+          box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+        }
+
+        #genreSidebar h3 {
+          margin-bottom: 20px;
+          color: var(--dark);
+        }
+
+        .genre-btn {
+          display: block;
+          width: 100%;
+          padding: 10px;
+          margin-bottom: 10px;
+          background: var(--accent);
+          color: var(--dark);
+          border: none;
+          border-radius: 5px;
+          text-align: left;
+          cursor: pointer;
+          transition: background 0.3s ease;
+        }
+
+        .genre-btn:hover {
+          background: var(--hover);
+          color: var(--hover-text);
+        }
+
+        #mainContent {
+          flex-grow: 1;
+          padding: 30px;
+        }
+
+        h2 {
+          text-align: center;
+          color: var(--dark);
+          margin-bottom: 20px;
+        }
+
+        #searchBox {
+          display: block;
+          margin: 0 auto 30px;
+          padding: 10px 15px;
+          font-size: 1rem;
+          max-width: 400px;
+          width: 100%;
+          border: 1px solid var(--accent);
+          border-radius: 8px;
+          box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+
+        #bookCards {
+          display: grid;
+          grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+          gap: 20px;
+        }
+
+        .card {
+          background: var(--card);
+          padding: 15px;
+          border-radius: 10px;
+          box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+          transition: transform 0.3s;
+          cursor: pointer;
+        }
+
+        .card:hover {
+          transform: translateY(-5px);
+        }
+
+        .card h3 {
+          color: var(--dark);
+          margin: 0 0 10px;
+        }
+
+        .card p {
+          color: var(--muted);
+          margin: 4px 0;
+          font-size: 0.9rem;
+        }
+                .back-btn {
+          padding: 10px 15px;
+          background: #007bff;
+          color: white;
+          border: none;
+          border-radius: 5px;
+          text-decoration: none;
+          margin: 0;
+        }
+
+        .back-btn:hover {
+          background: #0056b3;
+        }
+
+
+        @media (max-width: 768px) {
+          #genreSidebar {
+            display: none;
+          }
+
+          #mainContent {
+            padding: 20px;
+          }
+        }
+    </style>
+</head>
+<body>
+
+<div id="genreSidebar">
+    <h3>Genres</h3>
+    <div id="genreButtons"></div>
+</div>
+
+<div id="mainContent">
+    <div style="display: flex; justify-content: flex-end; margin-bottom: 10px;">
+        <a href="homePage.html" class="back-btn">Go Back</a>
+    </div>
+
+    <h2>Library Book List</h2>
+    <input type="text" id="searchBox" placeholder="Search books..." oninput="filterBooks()"/>
+    <div id="bookCards">Loading books...</div>
+</div>
+
+<script>
+    let fullBookList = [];
+    let genreFilteredBooks = [];
+    let currentBooks = [];
+
+    async function loadAllBooks() {
+      try {
+        const response = await fetch("http://127.0.0.1:5005/book-detail", {
+          headers: { "Authorization": "Bearer " + token }
+        });
+        const books = await response.json();
+        fullBookList = books;
+        genreFilteredBooks = books;
+        currentBooks = books;
+        displayBooks(currentBooks);
+      } catch (err) {
+        console.error("Error loading books:", err);
+        document.getElementById("bookCards").textContent = "Failed to load books.";
+      }
+    }
+
+    async function fetchGenres() {
+      try {
+        const res = await fetch("http://127.0.0.1:5005/get-genre", {
+          headers: { "Authorization": "Bearer " + token }
+        });
+        const genres = await res.json();
+        const container = document.getElementById("genreButtons");
+        genres.forEach(genre => {
+          const btn = document.createElement("button");
+          btn.className = "genre-btn";
+          btn.textContent = genre;
+          btn.onclick = () => loadBooksByGenre(genre);
+          container.appendChild(btn);
+        });
+      } catch (err) {
+        console.error("Error loading genres:", err);
+      }
+    }
+
+    async function loadBooksByGenre(genre) {
+      try {
+        const response = await fetch("http://127.0.0.1:5005/get-book-genre", {
+          method: "POST",
+          headers: {
+            "Authorization": "Bearer " + token,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ genre })
+        });
+
+        const data = await response.json();
+        genreFilteredBooks = data.books || [];
+        currentBooks = genreFilteredBooks;
+        displayBooks(currentBooks);
+        document.getElementById("searchBox").value = "";
+      } catch (err) {
+        console.error("Error loading genre books:", err);
+        document.getElementById("bookCards").textContent = "Failed to load genre books.";
+      }
+    }
+
+    function displayBooks(books) {
+      const container = document.getElementById("bookCards");
+      container.innerHTML = "";
+
+      if (!Array.isArray(books) || books.length === 0) {
+        container.textContent = "No books available.";
+        return;
+      }
+
+      books.forEach(book => {
+        const card = document.createElement("div");
+        card.className = "card";
+        card.innerHTML = `
+          <h3>${book.name || "No Title"}</h3>
+          <p><strong>Author:</strong> ${book.author || "Unknown"}</p>
+          <p><strong>Genre:</strong> ${book.genre || "N/A"}</p>
+        `;
+        card.onclick = () => {
+          localStorage.setItem("selectedBook", JSON.stringify(book));
+          window.location.href = "details.html";
+        };
+        container.appendChild(card);
+      });
+    }
+
+    function filterBooks() {
+      const keyword = document.getElementById("searchBox").value.toLowerCase().trim();
+
+      if (keyword === "") {
+        currentBooks = genreFilteredBooks;
+        displayBooks(currentBooks);
+        return;
+      }
+
+      const filtered = genreFilteredBooks.filter(book =>
+        (book.name || "").toLowerCase().includes(keyword) ||
+        (book.author || "").toLowerCase().includes(keyword) ||
+        (book.genre || "").toLowerCase().includes(keyword)
+      );
+
+      currentBooks = filtered;
+      displayBooks(currentBooks);
+    }
+
+    window.onload = () => {
+      if (!token) {
+        alert("No token found. Please login.");
+        return;
+      }
+      loadAllBooks();
+      fetchGenres();
+    };
+</script>
+
+</body>
+</html>

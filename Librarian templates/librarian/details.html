@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Book Details</title>
+    <script>
+        const token = localStorage.getItem("authToken");
+         if (token) {
+           const payload = JSON.parse(atob(token.split('.')[1]));
+           const expiry = payload.exp;
+           const role=payload.role;
+           const now = Math.floor(Date.now() / 1000);
+           if (now > expiry||role!=="librarian") {
+             localStorage.removeItem("authToken");
+             window.location.href = "../librarianLogin.html";
+           }
+         } else {
+           window.location.href = "../librarianLogin.html";
+         }
+    </script>
+    <style>
+        body {
+          font-family: 'Segoe UI', sans-serif;
+          background: #f1f5f9;
+          padding: 40px;
+          display: flex;
+          justify-content: center;
+        }
+
+        .container {
+          background: #ffffff;
+          padding: 30px 40px;
+          border-radius: 12px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+          width: 100%;
+          max-width: 700px;
+        }
+
+        h2 {
+          text-align: center;
+          margin-bottom: 30px;
+          color: #1e293b;
+        }
+
+        .form-group {
+          margin-bottom: 20px;
+        }
+
+        .form-group label {
+          display: block;
+          margin-bottom: 6px;
+          font-weight: 600;
+          color: #334155;
+        }
+
+        .form-group input,
+        .form-group textarea {
+          width: 100%;
+          padding: 10px 14px;
+          font-size: 15px;
+          border: 1px solid #cbd5e1;
+          border-radius: 8px;
+          background-color: #f8fafc;
+          color: #1e293b;
+        }
+
+        input[readonly],
+        textarea[readonly] {
+          background-color: #f1f5f9;
+          border: none;
+          color: #475569;
+        }
+
+        .btn-group {
+          display: flex;
+          justify-content: flex-end;
+          gap: 10px;
+          margin-top: 30px;
+        }
+
+        .btn {
+          padding: 10px 18px;
+          font-size: 14px;
+          font-weight: 500;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+          transition: 0.3s;
+        }
+
+        .edit-btn {
+          background-color: #3b82f6;
+          color: white;
+        }
+
+        .edit-btn:hover {
+          background-color: #2563eb;
+        }
+
+        .save-btn {
+          background-color: #10b981;
+          color: white;
+          display: none;
+        }
+
+        .save-btn:hover {
+          background-color: #059669;
+        }
+
+        .back-btn {
+          background-color: #e2e8f0;
+          color: #1e293b;
+          text-decoration: none;
+          display: inline-block;
+        }
+
+        .back-btn:hover {
+          background-color: #cbd5e1;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Book Details</h2>
+    <div class="form-group">
+        <label>Book Name</label>
+        <input name="name" readonly/>
+    </div>
+    <div class="form-group">
+        <label>Author</label>
+        <input name="author" readonly/>
+    </div>
+    <div class="form-group">
+        <label>Publisher</label>
+        <input name="publisher" readonly/>
+    </div>
+    <div class="form-group">
+        <label>Published Year</label>
+        <input name="published_year" readonly/>
+    </div>
+    <div class="form-group">
+        <label>Edition</label>
+        <input name="edition" readonly/>
+    </div>
+    <div class="form-group">
+        <label>Genre</label>
+        <input name="genre" readonly/>
+    </div>
+    <div class="form-group">
+        <label>Total Copies</label>
+        <input name="total_copy" readonly/>
+    </div>
+    <div class="form-group">
+        <label>Available Copies</label>
+        <input name="available_copies" readonly/>
+    </div>
+    <div class="form-group">
+        <label>Description</label>
+        <textarea name="description" rows="3" readonly></textarea>
+    </div>
+    <div class="form-group">
+        <label>Location</label>
+        <input name="location" readonly/>
+    </div>
+
+    <div class="btn-group">
+        <button class="btn edit-btn" onclick="enableEditing()">Edit</button>
+        <button class="btn save-btn" onclick="submitUpdate()" id="saveBtn">Submit</button>
+        <a href="LibraryBooks.html" class="btn back-btn">Back</a>
+    </div>
+</div>
+
+<script>
+    const book = JSON.parse(localStorage.getItem("selectedBook") || "{}");
+
+    // Fill all inputs with book values
+    for (let key in book) {
+      const field = document.querySelector(`[name="${key}"]`);
+      if (field) field.value = book[key];
+    }
+
+    function enableEditing() {
+      const inputs = document.querySelectorAll("input, textarea");
+      inputs.forEach(input => input.removeAttribute("readonly"));
+
+      document.querySelector(".edit-btn").style.display = "none";
+      document.getElementById("saveBtn").style.display = "inline-block";
+    }
+
+    async function submitUpdate() {
+      const formData = {};
+      const inputs = document.querySelectorAll("input, textarea");
+      inputs.forEach(input => {
+        formData[input.name] = input.value;
+      });
+
+      try {
+        const res = await fetch("http://127.0.0.1:5005/update-book-detail", {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData)
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          alert(data.message);
+          localStorage.setItem("selectedBook", JSON.stringify(formData));
+          location.reload();
+        } else {
+          alert(data.message);
+        }
+      } catch (err) {
+        alert("Error: " + err.message);
+      }
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Attendance Viewer - JIET</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet"/>
+    <script>
+        // Initial check for auth token
+        const token = localStorage.getItem("authToken");
+        if (!token) {
+          window.location.href = "../students_login.html";
+        }
+    </script>
+    <style>
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+
+        body {
+          font-family: 'Inter', sans-serif;
+          background-color: #eef1f6;
+          color: #2c3e50;
+        }
+
+        header {
+          background-color: #1e3a8a;
+          color: #fff;
+          text-align: center;
+          padding: 30px 10px;
+          font-size: 30px;
+          font-weight: 600;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .container {
+          max-width: 1000px;
+          margin: 50px auto;
+          background-color: #ffffff;
+          border-radius: 16px;
+          padding: 40px;
+          box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .section {
+          margin-bottom: 40px;
+        }
+
+        h2 {
+          font-size: 22px;
+          margin-bottom: 16px;
+          color: #1e293b;
+        }
+
+        .btn-group {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 14px;
+        }
+
+        .btn {
+          background-color: #2563eb;
+          color: white;
+          padding: 10px 20px;
+          border: none;
+          border-radius: 10px;
+          cursor: pointer;
+          font-size: 15px;
+          transition: all 0.2s ease-in-out;
+        }
+
+        .btn:hover {
+          background-color: #1d4ed8;
+          transform: scale(1.05);
+        }
+
+        .info-box {
+          margin-top: 30px;
+          padding: 18px;
+          border-left: 6px solid #ef4444;
+          background-color: #fef2f2;
+          border-radius: 10px;
+          color: #991b1b;
+          display: none;
+          font-size: 16px;
+        }
+
+        .result-card {
+          display: none;
+          background-color: #f0f9ff;
+          border-left: 6px solid #0ea5e9;
+          padding: 30px;
+          margin-top: 30px;
+          border-radius: 12px;
+        }
+
+        .result-card h3 {
+          font-size: 20px;
+          color: #0284c7;
+          margin-bottom: 10px;
+        }
+
+        .result-card p {
+          font-size: 16px;
+          margin: 8px 0;
+        }
+
+        @media (max-width: 600px) {
+          .btn {
+            width: 100%;
+          }
+
+          .container {
+            padding: 20px;
+          }
+        }
+        .back-btn {
+          display: inline-block;
+          margin-top: 20px;
+          padding: 10px 15px;
+          background: #007bff;
+          color: white;
+          border: none;
+          border-radius: 5px;
+          text-decoration: none;
+        }
+        .back-btn:hover {
+          background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+<header>Faculty Attendance Viewer - JIET</header>
+
+<div class="container">
+    <div class="section">
+        <h2> Choose a Month</h2>
+        <div class="btn-group" id="monthContainer"></div>
+    </div>
+
+    <div class="section">
+        <div class="btn-group" id="dateContainer"></div>
+    </div>
+
+    <div class="section">
+        <div class="btn-group" id="subjectContainer"></div>
+    </div>
+
+    <div id="message" class="info-box"></div>
+
+    <div id="resultCard" class="result-card">
+        <h3>Attendance Details</h3>
+        <p><strong>Subject:</strong> <span id="resultSubject"></span></p>
+        <p><strong>Date:</strong> <span id="resultDate"></span></p>
+        <p><strong>Status:</strong> <span id="resultStatus"></span></p>
+    </div>
+    <a href="studentPage.html" class="back-btn">go Back </a>
+</div>
+
+<script>
+    const months = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+
+    const subjects = [
+      "Science", "Math", "English", "Hindi", "History",
+      "Economics", "Civics", "General Knowledge", "Extra Activity"
+    ];
+
+    const monthContainer = document.getElementById("monthContainer");
+    const dateContainer = document.getElementById("dateContainer");
+    const subjectContainer = document.getElementById("subjectContainer");
+    const messageBox = document.getElementById("message");
+    const resultCard = document.getElementById("resultCard");
+
+    let selectedMonthIndex = null;
+    let selectedDate = null;
+
+    months.forEach((month, i) => {
+      const btn = document.createElement("button");
+      btn.className = "btn";
+      btn.innerText = month;
+      btn.onclick = () => {
+        selectedMonthIndex = i;
+        selectedDate = null;
+        renderDates(i);
+        subjectContainer.innerHTML = "";
+        messageBox.style.display = "none";
+        resultCard.style.display = "none";
+      };
+      monthContainer.appendChild(btn);
+    });
+
+    function renderDates(monthIndex) {
+      dateContainer.innerHTML = "";
+      const daysInMonth = new Date(2025, monthIndex + 1, 0).getDate();
+      for (let day = 1; day <= daysInMonth; day++) {
+        const btn = document.createElement("button");
+        btn.className = "btn";
+        btn.innerText = day;
+        btn.onclick = () => {
+          selectedDate = day;
+          renderSubjects();
+          messageBox.style.display = "none";
+          resultCard.style.display = "none";
+        };
+        dateContainer.appendChild(btn);
+      }
+    }
+
+    function renderSubjects() {
+      subjectContainer.innerHTML = "";
+      subjects.forEach(subject => {
+        const btn = document.createElement("button");
+        btn.className = "btn";
+        btn.innerText = subject;
+        btn.onclick = () => {
+          const fullDate = `2025-${String(selectedMonthIndex + 1).padStart(2, '0')}-${String(selectedDate).padStart(2, '0')}`;
+          sendAttendance(subject, fullDate);
+        };
+        subjectContainer.appendChild(btn);
+      });
+    }
+
+    async function sendAttendance(subject, date) {
+  // 🧹 Clear previous messages/results
+  messageBox.style.display = "none";
+  resultCard.style.display = "none";
+
+  try {
+    const res = await fetch("http://127.0.0.1:5005/student-view-attendance", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + token
+      },
+      body: JSON.stringify({ subject, date })
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      if (data.subject && data.status) {
+        resultCard.style.display = "block";
+        document.getElementById("resultSubject").innerText = data.subject;
+        document.getElementById("resultDate").innerText = date;
+        document.getElementById("resultStatus").innerText = data.status;
+      } else if (data.message) {
+        showMessage(data.message, "error");
+      } else {
+        showMessage("No attendance record found.", "error");
+      }
+    } else {
+      showMessage(data.message || "Something went wrong.", "error");
+    }
+  } catch (error) {
+    showMessage("Error fetching data. Please try again.", "error");
+  }
+}
+
+
+    function showMessage(msg, type) {
+      messageBox.innerHTML = msg;
+      messageBox.style.display = "block";
+      messageBox.style.backgroundColor = type === "error" ? "#fef2f2" : "#e0f2fe";
+      messageBox.style.borderLeftColor = type === "error" ? "#ef4444" : "#0ea5e9";
+      resultCard.style.display = "none";
+    }
+</script>
+
+</body>
+</html>

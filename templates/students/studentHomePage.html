@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Student Main Page - JIET</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet"/>
+    <style>
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+        }
+
+        body {
+          font-family: 'Poppins', sans-serif;
+          display: flex;
+          flex-direction: column;
+          height: 100vh;
+          background: #f4f6f8;
+        }
+
+        header {
+          background: linear-gradient(to right, #0984e3, #6c5ce7);
+          color: white;
+          padding: 20px;
+          text-align: center;
+          font-size: 26px;
+          font-weight: bold;
+          letter-spacing: 1px;
+          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+          position: relative;
+        }
+
+        #studentName {
+          position: absolute;
+          top: 25px;
+          right: 30px;
+          color: white;
+          font-size: 18px;
+        }
+
+        #themeSwitchLabel {
+          position: absolute;
+          top: 25px;
+          right: 180px;
+          color: white;
+          font-size: 16px;
+        }
+
+        .main-container {
+          display: flex;
+          flex: 1;
+        }
+
+        .sidebar {
+          width: 240px;
+          background-color: #2d3436;
+          color: #fff;
+          padding: 30px 20px;
+          display: flex;
+          flex-direction: column;
+          gap: 25px;
+          box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-btn {
+          padding: 14px;
+          font-size: 16px;
+          background: #0984e3;
+          color: white;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          font-weight: 600;
+        }
+
+        .nav-btn:hover {
+          background: #6c5ce7;
+          transform: translateX(5px);
+        }
+
+        .content {
+          flex-grow: 1;
+          padding: 40px;
+          overflow-y: auto;
+          background: #f9fbfd;
+        }
+
+        .notifications, .faculty-section {
+          background: #ffffff;
+          padding: 25px 30px;
+          border-radius: 14px;
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.07);
+          margin-bottom: 30px;
+        }
+
+        .notifications h2, .faculty-section h2 {
+          margin-bottom: 25px;
+          color: #2d3436;
+          font-size: 22px;
+          border-bottom: 2px solid #0984e3;
+          display: inline-block;
+          padding-bottom: 5px;
+        }
+
+        .notifications ul {
+          list-style: none;
+        }
+
+        .notifications li {
+          margin-bottom: 15px;
+          padding: 12px 15px;
+          background-color: #e3f2fd;
+          border-radius: 8px;
+          border-left: 4px solid #0984e3;
+          font-size: 15px;
+          color: #2d3436;
+        }
+
+        .notification-date {
+          font-size: 12px;
+          color: #636e72;
+          margin-top: 5px;
+        }
+
+        .faculty-cards-container {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 20px;
+        }
+
+        .faculty-card {
+          flex: 0 1 220px;
+          background: #ffffff;
+          border: 2px solid #0984e3;
+          padding: 10px;
+          border-radius: 10px;
+          text-align: center;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          font-weight: 600;
+          color: #2d3436;
+          box-shadow: 0 3px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .faculty-card:hover {
+          background: #0984e3;
+          color: #ffffff;
+          transform: scale(1.05);
+        }
+           @media (max-width: 991px) {
+          .hamburger {
+            display: flex;
+          }
+
+          .sidebar {
+            position: fixed;
+            top: 80px;
+            left: 0;
+            height: calc(100% - 80px);
+            background: #2d3436;
+            transform: translateX(-100%);
+            z-index: 999;
+          }
+
+          .sidebar.show {
+            transform: translateX(0);
+          }
+
+          .main-container {
+            flex-direction: column;
+          }
+
+          .content {
+            padding: 20px;
+          }
+        }
+
+        @media (max-width: 600px) {
+          .nav-btn {
+            font-size: 14px;
+            padding: 10px;
+          }
+
+          #studentName {
+            font-size: 14px;
+          }
+        }
+
+    </style>
+</head>
+<body>
+
+<header>
+    Jodhpur Institute Of Engineering and Technology
+    <div id="studentName">Welcome, Student</div>
+</header>
+
+<div class="main-container">
+    <div class="sidebar">
+        <button class="nav-btn" onclick="showFacultyData()"> Faculty</button>
+        <button class="nav-btn" onclick="location.href='studentPage.html'"> Student Dashboard</button>
+        <button class="nav-btn" onclick="location.href='LibraryBooks.html'"> Books</button>
+    </div>
+
+    <div class="content" id="mainContent">
+        <div class="notifications">
+            <h2>Notification</h2>
+            <ul id="notificationList">
+                <li>Loading notifications...</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<script>
+    const token = localStorage.getItem("authToken");
+        if (token) {
+          const payload = JSON.parse(atob(token.split('.')[1]));
+          const expiry = payload.exp;
+          const role=payload.role;
+          const now = Math.floor(Date.now() / 1000);
+
+          if (now > expiry||role!=="student") {
+            const now = Math.floor(Date.now() / 1000);
+          }
+        } else {
+          window.location.href = "../students_login.html";
+        }
+
+  window.onload = async function () {
+    const studentName = document.getElementById("studentName");
+    const themeSwitch = document.getElementById("themeSwitch");
+
+    try {
+      const res = await fetch("http://127.0.0.1:5005/student-profile", {
+        method: "GET",
+        headers: { Authorization: "Bearer " + token },
+      });
+
+      if (!res.ok) throw new Error("Unauthorized");
+      const data = await res.json();
+      studentName.textContent = "Welcome, " + data.name;
+    } catch (e) {
+      window.location.href = "../students_login.html";
+    }
+
+
+
+    // Load notifications
+    const list = document.getElementById("notificationList");
+    try {
+      const res = await fetch("http://127.0.0.1:5005/get-notification");
+      const data = await res.json();
+
+      if (Array.isArray(data) && data.length > 0) {
+        list.innerHTML = data.map(n => `
+          <li>
+            <strong>${n.notification}</strong>
+            <div class="notification-date">${n.date}</div>
+          </li>
+        `).join('');
+      } else {
+        list.innerHTML = `<li>No notifications found.</li>`;
+      }
+    } catch (err) {
+      list.innerHTML = `<li>Failed to load notifications.</li>`;
+      console.error(err);
+    }
+  };
+
+  async function showFacultyData() {
+    const mainContent = document.getElementById("mainContent");
+    mainContent.innerHTML = `<h2 class="section-title">Faculty Data</h2><p style="text-align:center;">Loading...</p>`;
+
+    try {
+      const response = await fetch("http://127.0.0.1:5005/faculty-name", {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + token
+        }
+      });
+
+      const facultyList = await response.json();
+
+      const cards = facultyList.length
+        ? facultyList.map(faculty =>
+          `<div class="faculty-card" data-email="${faculty.email}" onclick="viewFacultyProfile(this)">
+            <h3>${faculty.name}</h3>
+          </div>`).join("")
+        : "<p>No faculty found</p>";
+
+      mainContent.innerHTML = `<div class="faculty-section">
+                                 <div class="faculty-cards-container">${cards}</div>
+                               </div>`;
+    } catch (err) {
+      console.error(err);
+      mainContent.innerHTML = `<h2>Error</h2><p>Could not load data.</p>`;
+    }
+  }
+
+  async function viewFacultyProfile(cardElement) {
+    const email = cardElement.getAttribute("data-email");
+    const mainContent = document.getElementById("mainContent");
+
+    mainContent.innerHTML = `<h2 class="section-title">Faculty Profile</h2><p style="text-align:center;">Loading...</p>`;
+
+    try {
+      const res = await fetch("http://127.0.0.1:5005/faculty-profile", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + token
+        },
+        body: JSON.stringify({ email })
+      });
+
+      const data = await res.json();
+      mainContent.innerHTML = `
+  <div style="
+    max-width: 700px;
+    margin: 40px auto;
+    padding: 30px;
+    background: #ffffff;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    font-family: 'Poppins', sans-serif;
+    color: #2d3436;
+    position: relative;
+    overflow: hidden;
+  ">
+    <div style="
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: #dfe6e9;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 36px;
+      font-weight: 600;
+      color: #0984e3;
+      margin: 0 auto 20px auto;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    ">
+      ${data.name.charAt(0).toUpperCase()}
+    </div>
+
+    <h2 style="text-align: center; font-size: 26px; color: #0984e3; margin-bottom: 5px;">
+      ${data.name}
+    </h2>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+      <div style="background:#f9f9f9; padding: 20px; border-radius: 12px;">
+        <h4 style="margin-bottom: 10px; color: #2d3436;"> Phone</h4>
+        <p>${data.contact || "Not available"}</p>
+      </div>
+      <div style="background:#f9f9f9; padding: 20px; border-radius: 12px;">
+        <h4 style="margin-bottom: 10px; color: #2d3436;"> Subject</h4>
+        <p>${data.subject || "Not assigned"}</p>
+      </div>
+      <div style="background:#f9f9f9; padding: 20px; border-radius: 12px;">
+        <h4 style="margin-bottom: 10px; color: #2d3436;"> Qualification</h4>
+        <p>${data.qualification || "Not added"}</p>
+      </div>
+      <div style="background:#f9f9f9; padding: 20px; border-radius: 12px;">
+        <h4 style="margin-bottom: 10px; color: #2d3436;"> Email</h4>
+        <p>${data.email || "N/A"}</p>
+      </div>
+    </div>
+  </div>
+      `;
+    } catch (err) {
+      console.error(err);
+      mainContent.innerHTML = `<h2 class="section-title">Error</h2><p>Could not fetch profile.</p>`;
+    }
+  }
+</script>
+
+</body>
+</html>

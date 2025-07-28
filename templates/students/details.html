@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Book Details</title>
+    <style>
+        body {
+          font-family: 'Segoe UI', sans-serif;
+          background: #fffdf5;
+          padding: 40px;
+          max-width: 800px;
+          margin: auto;
+        }
+        .details-box {
+          background: #ffffff;
+          padding: 30px;
+          border-radius: 15px;
+          box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        h2 {
+          margin-bottom: 15px;
+        }
+        p {
+          margin: 8px 0;
+          line-height: 1.6;
+        }
+        .back-btn {
+          display: inline-block;
+          margin-top: 20px;
+          padding: 10px 15px;
+          background: #007bff;
+          color: white;
+          border: none;
+          border-radius: 5px;
+          text-decoration: none;
+        }
+        .back-btn:hover {
+          background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+<div class="details-box">
+    <h2 id="detailName">Book Title</h2>
+    <p><strong>Author:</strong> <span id="detailAuthor"></span></p>
+    <p><strong>Publisher:</strong> <span id="detailPublisher"></span></p>
+    <p><strong>Published Year:</strong> <span id="detailYear"></span></p>
+    <p><strong>Edition:</strong> <span id="detailEdition"></span></p>
+    <p><strong>Genre:</strong> <span id="detailGenre"></span></p>
+    <p><strong>Total Copies:</strong> <span id="detailTotal"></span></p>
+    <p><strong>Available:</strong> <span id="detailAvailable"></span></p>
+    <p><strong>Description:</strong> <span id="detailDesc"></span></p>
+    <p><strong>Location:</strong> <span id="detailLocation"></span></p>
+    <a href="LibraryBooks.html" class="back-btn">go Back </a>
+</div>
+
+<script>
+    const book = JSON.parse(localStorage.getItem("selectedBook") || "{}");
+    document.getElementById("detailName").textContent = book.name || "N/A";
+    document.getElementById("detailAuthor").textContent = book.author || "N/A";
+    document.getElementById("detailPublisher").textContent = book.publisher || "N/A";
+    document.getElementById("detailYear").textContent = book.published_year || "N/A";
+    document.getElementById("detailEdition").textContent = book.edition || "N/A";
+    document.getElementById("detailGenre").textContent = book.genre || "N/A";
+    document.getElementById("detailTotal").textContent = book.total_copy || "N/A";
+    document.getElementById("detailAvailable").textContent = book.available_copies || "N/A";
+    document.getElementById("detailDesc").textContent = book.description || "N/A";
+    document.getElementById("detailLocation").textContent = book.location || "N/A";
+</script>
+
+</body>
+</html>

@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Faculty Dashboard - JIET</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&display=swap" rel="stylesheet"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: "Poppins", sans-serif; }
+        body { display: flex; flex-direction: column; min-height: 100vh; background: #ecf0f3; overflow-x: hidden; }
+
+        .sidebar {
+          width: 250px;
+          background-color: #2d3436;
+          color: white;
+          display: flex;
+          flex-direction: column;
+          padding-top: 80px;
+          position: fixed;
+          height: 100vh;
+          left: 0;
+          top: 0;
+          box-shadow: 3px 0 10px rgba(0, 0, 0, 0.1);
+          z-index: 1001;
+        }
+
+        .sidebar h2 {
+          text-align: center;
+          font-weight: 600;
+          font-size: 22px;
+          margin-bottom: 30px;
+          border-bottom: 1px solid #444;
+          padding-bottom: 10px;
+        }
+
+        .sidebar a {
+          padding: 15px 30px;
+          color: white;
+          text-decoration: none;
+          display: flex;
+          align-items: center;
+          gap: 15px;
+          transition: 0.3s;
+          font-weight: 500;
+          cursor: pointer;
+        }
+
+        .sidebar a:hover { background-color: #636e72; }
+
+        .topbar {
+          position: fixed;
+          top: 0;
+          left: 250px;
+          right: 0;
+          height: 70px;
+          background-color: #0984e3;
+          color: white;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 0 30px;
+          z-index: 1000;
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .main-content {
+          margin-left: 250px;
+          margin-top: 70px;
+          padding: 30px;
+          height: calc(100vh - 70px);
+          overflow-y: auto;
+        }
+
+        .hamburger { display: none; font-size: 24px; cursor: pointer; }
+
+        @media (max-width: 768px) {
+          .sidebar { transform: translateX(-260px); }
+          .sidebar.visible { transform: translateX(0); }
+          .topbar { left: 0; }
+          .hamburger { display: block; }
+          .main-content { margin-left: 0; }
+        }
+
+        .section-title {
+          font-size: 32px;
+          font-weight: 700;
+          color: #0984e3;
+          margin-bottom: 30px;
+          text-align: center;
+        }
+
+        .admin-menu-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+          gap: 25px;
+          padding: 20px;
+          max-width: 900px;
+          margin: 20px auto;
+        }
+
+        .admin-menu-btn {
+          background-color: #0984e3;
+          border: none;
+          padding: 20px;
+          color: white;
+          font-size: 16px;
+          font-weight: 600;
+          border-radius: 12px;
+          cursor: pointer;
+          transition: all 0.3s ease;
+          box-shadow: 0 6px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .admin-menu-btn:hover {
+          background-color: #74b9ff;
+          transform: translateY(-5px);
+          box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .faculty-cards-container {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 20px;
+          justify-content: center;
+          padding: 20px;
+        }
+
+        .faculty-card {
+          background-color: white;
+          border-radius: 12px;
+          padding: 15px;
+          width: 180px;
+          height: 180px;
+          box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+          border: 1px solid #ddd;
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          text-align: center;
+          cursor: pointer;
+        }
+
+        .faculty-card:hover {
+          transform: translateY(-5px);
+          box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .faculty-card h3 { margin-bottom: 10px; font-size: 18px; color: #0984e3; }
+    </style>
+</head>
+<body>
+<div class="sidebar" id="sidebar">
+    <h2>Admin Panel</h2>
+    <a id="facultyMenuBtn">Faculty Options</a>
+    <a id="announcementBtn">Announcement</a>
+    <a id="PYQUploadBtn">PYQ upload</a>
+    <a id="markSheetUploadBtn">result upload</a>
+    <a id="FeesStatusBtn">Fees</a>
+</div>
+
+<div class="topbar">
+    <div class="title">
+        <i class="fas fa-bars hamburger" id="hamburger"></i>
+        JODHPUR INSTITUTE OF ENGINEERING & TECHNOLOGY
+    </div>
+    <div class="right-controls">
+        <button onclick="logoutUser()"
+                style="padding: 6px 12px; background-color: #d63031; color: white; border: none; border-radius: 6px; cursor: pointer;">
+            Logout
+        </button>
+    </div>
+</div>
+
+<div class="main-content" id="mainContent">
+    <h2 class="section-title">Welcome to the Admin Dashboard</h2>
+</div>
+
+<script>
+    const token = localStorage.getItem("authToken");
+          if (token) {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            const expiry = payload.exp;
+            const role = payload.role;
+            const now = Math.floor(Date.now() / 1000);
+
+            if (now > expiry||role!=="admin") {
+              localStorage.removeItem("authToken");
+              window.location.href = "../adminLogin.html";
+            }
+          } else {
+            window.location.href = "../adminLogin.html";
+          }
+
+    const facultyMenuBtn = document.getElementById("facultyMenuBtn");
+    const resultBtn = document.getElementById("markSheetUploadBtn");
+    const facultyName = document.getElementById("facultyName");
+    const mainContent = document.getElementById("mainContent");
+    const sidebar = document.getElementById("sidebar");
+    const hamburger = document.getElementById("hamburger");
+
+    // Load faculty name
+    window.onload = async () => {
+      if (!token) return window.location.href = "../adminLogin.html";
+    };
+
+    facultyMenuBtn.addEventListener("click", () => displayFacultyMenu());
+
+    function displayFacultyMenu() {
+      mainContent.innerHTML = `
+        <h2 class="section-title">Faculty Options</h2>
+        <div class="admin-menu-grid">
+          <button class="admin-menu-btn" onclick="facultyRegistration()">Faculty Registration</button>
+          <button class="admin-menu-btn" onclick="showFacultyData()">Show Faculty Data</button>
+          <button class="admin-menu-btn" onclick="updateFacultyInformation()">Update Faculty Information</button>
+          <button class="admin-menu-btn" onclick="deleteFaculty()">Delete Faculty</button>
+        </div>`;
+    }
+
+    function facultyRegistration() {
+      window.location.href = "facultyRegistrationForm.html";
+    }
+
+
+    async function showFacultyData() {
+      mainContent.innerHTML = `<h2 class="section-title">Faculty Data</h2><p style="text-align:center;">Loading...</p>`;
+
+      try {
+        const response = await fetch("http://127.0.0.1:5005/faculty-name", {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + token
+          }
+        });
+
+        const facultyList = await response.json();
+
+        const cards = facultyList.length
+          ? facultyList.map(faculty =>
+              `<div class="faculty-card" data-email="${faculty.email}" onclick="viewFacultyProfile(this)">
+                <h3>${faculty.name}</h3>
+              </div>`).join("")
+          : "<p>No faculty found</p>";
+
+        mainContent.innerHTML = `<h2 class="section-title">Faculty Data</h2>
+                                 <div class="faculty-cards-container">${cards}</div>`;
+      } catch (err) {
+        console.error(err);
+        mainContent.innerHTML = `<h2 class="section-title">Error</h2><p>Could not load data.</p>`;
+      }
+    }
+
+    async function viewFacultyProfile(cardElement) {
+      const email = cardElement.getAttribute("data-email");
+
+
+      mainContent.innerHTML = `<h2 class="section-title">Faculty Profile</h2><p style="text-align:center;">Loading...</p>`;
+
+      try {
+        const res = await fetch("http://127.0.0.1:5005/faculty-profile", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + token
+          },
+          body: JSON.stringify({ email })
+        });
+
+        const data = await res.json();
+        mainContent.innerHTML = `
+          <h2 class="section-title">Faculty Profile</h2>
+          <div style="max-width: 500px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 6px 12px rgba(0,0,0,0.1);">
+            <p><strong>Name:</strong> ${data.name}</p>
+            <p><strong>Email:</strong> ${data.email}</p>
+            <p><strong>Phone:</strong> ${data.contact || "N/A"}</p>
+            <p><strong>Subject:</strong> ${data.subject || "N/A"}</p>
+            <p><strong>Qualification:</strong> ${data.qualification || "N/A"}</p>
+          </div>`;
+      } catch (err) {
+        console.error(err);
+        mainContent.innerHTML = `<h2 class="section-title">Error</h2><p>Could not fetch profile.</p>`;
+      }
+    }
+
+    function updateFacultyInformation() {
+      mainContent.innerHTML = `<h2 class="section-title">Update Faculty Information</h2><p style="text-align:center;">Form for updating faculty info.</p>`;
+    }
+
+    function deleteFaculty() {
+      mainContent.innerHTML = `<h2 class="section-title">Delete Faculty</h2><p style="text-align:center;">Form for deleting faculty info.</p>`;
+    }
+
+    async function logoutUser() {
+      try {
+        const response = await fetch("http://127.0.0.1:5005/admin-logout", {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer " + token,
+            "Content-Type": "application/json"
+          }
+        });
+        const data = await response.json();
+        alert(data.message || "Logout successful");
+      } catch (error) {
+        console.error("Logout error:", error);
+        alert("Logout failed. Try again.");
+      } finally {
+        localStorage.removeItem("authToken");
+        window.location.href = "../adminLogin.html";
+      }
+    }
+    const announcementBtn = document.getElementById("announcementBtn");
+
+        announcementBtn.addEventListener("click", () => {
+          window.location.href = "notificationForm.html"; // Make sure this file exists in the same folder
+        });
+
+    hamburger.addEventListener("click", () => {
+      sidebar.classList.toggle("visible");
+    });
+
+    document.addEventListener("click", function (event) {
+      if (!sidebar.contains(event.target) && !hamburger.contains(event.target)) {
+        sidebar.classList.remove("visible");
+      }
+    });
+
+    PYQUploadBtn.addEventListener("click", () => {
+    window.location.href = "uploadPYQ.html";
+      });
+      
+    resultBtn.addEventListener("click", () => {
+    window.location.href = "uploadMarksheets.html";
+      });
+
+</script>
+</body>
+</html>

@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Result Checker</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet"/>
+
+    <style>
+        body {
+          font-family: 'Poppins', sans-serif;
+          background: #f0f4f8;
+          padding: 30px;
+        }
+
+        .card {
+          max-width: 600px;
+          margin: auto;
+          background: #fff;
+          padding: 30px;
+          border-radius: 10px;
+          box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+        }
+
+        h2 {
+          background: linear-gradient(to right, #6e8efb, #a777e3);
+          color: white;
+          padding: 15px;
+          border-radius: 8px;
+          text-align: center;
+          margin-bottom: 20px;
+        }
+
+        label {
+          display: block;
+          margin-top: 10px;
+          font-weight: 600;
+        }
+
+        input, select {
+          width: 100%;
+          padding: 10px;
+          margin-top: 5px;
+          margin-bottom: 15px;
+          border: 1px solid #ccc;
+          border-radius: 6px;
+        }
+
+        button {
+          background: linear-gradient(to right, #6e8efb, #a777e3);
+          color: white;
+          padding: 12px;
+          border: none;
+          width: 100%;
+          border-radius: 8px;
+          font-weight: 600;
+          cursor: pointer;
+        }
+
+        .result-section {
+          display: none;
+          margin-top: 30px;
+        }
+
+        table {
+          width: 100%;
+          border-collapse: collapse;
+          margin-top: 15px;
+        }
+
+        th, td {
+          border: 1px solid #ccc;
+          padding: 10px;
+          text-align: center;
+        }
+
+        th {
+          background-color: #6e8efb;
+          color: white;
+        }
+
+        #errorMsg {
+          color: black;
+          font-weight: 600;
+          text-align: center;
+          display: none;
+          margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Check Semester Result</h2>
+
+    <!-- Form Section -->
+    <form id="searchForm">
+        <label for="roll">Roll Number</label>
+        <input type="text" id="roll" required/>
+
+        <label for="semester">Semester</label>
+        <select id="semester" required>
+            <option value="">Select</option>
+            <option value="1">Semester 1</option>
+            <option value="2">Semester 2</option>
+            <option value="3">Semester 3</option>
+            <option value="4">Semester 4</option>
+            <option value="5">Semester 5</option>
+            <option value="6">Semester 6</option>
+            <option value="7">Semester 7</option>
+            <option value="8">Semester 8</option>
+        </select>
+
+        <button type="submit">Get Result</button>
+    </form>
+
+    <!-- Error Message -->
+    <p id="errorMsg">Result not found</p>
+
+    <!-- Marksheet Section -->
+    <div class="result-section" id="marksheet">
+        <h3 style="text-align:center; color:#4e54c8;">Marksheet</h3>
+        <p><strong>Name:</strong> <span id="name"></span></p>
+        <p><strong>Roll:</strong> <span id="rollOut"></span></p>
+        <p><strong>Semester:</strong> <span id="semOut"></span></p>
+        <p><strong>Batch:</strong> <span id="batch"></span></p>
+        <p><strong>Branch:</strong> <span id="branch"></span></p>
+
+
+        <table>
+            <thead>
+            <tr>
+                <th>Subject</th>
+                <th>Marks</th>
+            </tr>
+            </thead>
+            <tbody id="subjectTable">
+            <!-- JS will add rows here -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    document.getElementById("searchForm").addEventListener("submit", async function(e) {
+      e.preventDefault();
+
+      // Reset error and result section
+      const errorMsg = document.getElementById("errorMsg");
+      errorMsg.style.display = "none";
+      document.getElementById("marksheet").style.display = "none";
+
+      const roll = document.getElementById("roll").value.trim();
+      const semester = document.getElementById("semester").value;
+      const token = localStorage.getItem("authToken"); // Optional
+
+      if (!roll || !semester) {
+        errorMsg.textContent = "Please fill both fields.";
+        errorMsg.style.display = "block";
+        return;
+      }
+
+      try {
+        const res = await fetch("http://127.0.0.1:5005/see-result", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer " + token
+          },
+          body: JSON.stringify({ roll, semester })
+        });
+
+        const data = await res.json();
+
+        if (!res.ok || !data.subjects || data.subjects.length === 0) {
+          errorMsg.textContent = "Result not found for given Roll Number and Semester.";
+          errorMsg.style.display = "block";
+          return;
+        }
+
+        // Fill personal info
+        document.getElementById("name").textContent = data.name || "-";
+        document.getElementById("rollOut").textContent = data.roll || "-";
+        document.getElementById("semOut").textContent = data.semester || "-";
+        document.getElementById("batch").textContent = data.batch || "-";
+        document.getElementById("branch").textContent = data.branch || "-";
+
+
+        // Generate subject rows
+        const table = document.getElementById("subjectTable");
+        table.innerHTML = "";
+        data.subjects.forEach(sub => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${sub.subject}</td>
+            <td>${sub.marks}</td>
+          `;
+          table.appendChild(row);
+        });
+
+        // Show result section
+        document.getElementById("marksheet").style.display = "block";
+
+      } catch (err) {
+        errorMsg.textContent = "Error fetching result: " + err.message;
+        errorMsg.style.display = "block";
+      }
+    });
+</script>
+</body>
+</html>

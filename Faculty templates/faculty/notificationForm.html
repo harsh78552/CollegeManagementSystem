@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Send Notification - Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;600&display=swap" rel="stylesheet"/>
+  <style>
+    body {
+      margin: 0;
+      font-family: "Poppins", sans-serif;
+      background-color: #f0f2f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .container {
+      background: white;
+      padding: 40px 30px;
+      border-radius: 12px;
+      box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+      max-width: 500px;
+      width: 100%;
+    }
+
+    .container h2 {
+      margin-bottom: 20px;
+      color: #0984e3;
+      font-size: 24px;
+      text-align: center;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 500;
+    }
+
+    .form-group textarea,
+    .form-group select {
+      width: 100%;
+      padding: 12px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      resize: none;
+    }
+
+    .form-group textarea {
+      height: 100px;
+    }
+
+    .submit-btn {
+      background-color: #0984e3;
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+      transition: background-color 0.3s;
+    }
+
+    .submit-btn:hover {
+      background-color: #74b9ff;
+    }
+
+    .message {
+      margin-top: 15px;
+      text-align: center;
+      font-weight: 500;
+    }
+
+    .message.success {
+      color: green;
+    }
+
+    .message.error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h2>Send Notification</h2>
+    <div class="form-group">
+      <label for="notificationMessage">Notification Message</label>
+      <textarea id="notificationMessage" placeholder="Enter your notification here..."></textarea>
+    </div>
+
+    <div class="form-group">
+      <label for="recipientType">Send To</label>
+      <select id="recipientType">
+        <option value="">-- Select --</option>
+        <option value="student">Student</option>
+      </select>
+    </div>
+
+    <button class="submit-btn" onclick="sendNotification()">Send Notification</button>
+    <div id="messageBox" class="message"></div>
+  </div>
+
+  <script>
+    const token = localStorage.getItem("authToken");
+
+    async function sendNotification() {
+      const message = document.getElementById("notificationMessage").value.trim();
+      const recipient = document.getElementById("recipientType").value;
+      const messageBox = document.getElementById("messageBox");
+
+      if (!message || !recipient) {
+        messageBox.textContent = "Please fill in all fields.";
+        messageBox.className = "message error";
+        return;
+      }
+
+      try {
+        const response = await fetch("http://127.0.0.1:5005/send-notification", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: "Bearer " + token
+          },
+          body: JSON.stringify({
+            message: message,
+            recipient: recipient
+          })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+          messageBox.textContent = "Notification sent successfully!";
+          messageBox.className = "message success";
+          document.getElementById("notificationMessage").value = "";
+        } else {
+          messageBox.textContent = result.message || "Failed to send notification.";
+          messageBox.className = "message error";
+        }
+      } catch (error) {
+        console.error(error);
+        messageBox.textContent = "Server error. Please try again.";
+        messageBox.className = "message error";
+      }
+    }
+  </script>
+
+</body>
+</html>

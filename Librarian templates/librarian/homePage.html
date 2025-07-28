@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Librarian Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        * {
+          margin: 0;
+          padding: 0;
+          box-sizing: border-box;
+          font-family: 'Inter', sans-serif;
+        }
+
+        body {
+          display: flex;
+          flex-direction: column;
+          height: 100vh;
+          background-color: #f8fafc;
+        }
+
+        .navbar {
+          background-color: #0f172a;
+          color: white;
+          padding: 16px 30px;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .navbar .left-info {
+          display: flex;
+          flex-direction: column;
+        }
+
+        .navbar h2 {
+          font-size: 22px;
+          font-weight: 600;
+        }
+
+        .logout-btn {
+          background-color: #ef4444;
+          border: none;
+          color: white;
+          padding: 8px 16px;
+          border-radius: 6px;
+          cursor: pointer;
+          font-weight: 500;
+        }
+
+        .main {
+          display: flex;
+          flex: 1;
+        }
+
+        .sidebar {
+          width: 250px;
+          background-color: #1e293b;
+          color: white;
+          padding: 30px 20px;
+          display: flex;
+          flex-direction: column;
+          gap: 20px;
+        }
+
+        .sidebar button {
+          background-color: #334155;
+          color: white;
+          border: none;
+          padding: 14px 18px;
+          font-size: 15px;
+          border-radius: 8px;
+          text-align: left;
+          cursor: pointer;
+          transition: background-color 0.3s ease;
+        }
+
+        .sidebar button:hover {
+          background-color: #475569;
+        }
+
+        .content {
+          flex: 1;
+          padding: 40px;
+          background-color: #ffffff;
+          box-shadow: inset 0 0 10px rgba(0,0,0,0.03);
+        }
+
+        h3 {
+          margin-bottom: 20px;
+          font-weight: 600;
+          color: #1e293b;
+        }
+
+        form {
+          display: flex;
+          flex-direction: column;
+          gap: 15px;
+          max-width: 500px;
+        }
+
+        label {
+          font-weight: 500;
+          color: #374151;
+        }
+
+        input, textarea {
+          padding: 10px 14px;
+          font-size: 14px;
+          border: 1px solid #cbd5e1;
+          border-radius: 6px;
+          background-color: #f9fafb;
+        }
+
+        .submit-btn {
+          background-color: #2563eb;
+          color: white;
+          padding: 12px;
+          font-size: 15px;
+          border: none;
+          border-radius: 6px;
+          cursor: pointer;
+          font-weight: 500;
+        }
+
+        .submit-btn:hover {
+          background-color: #1d4ed8;
+        }
+
+        @media (max-width: 768px) {
+          .main {
+            flex-direction: column;
+          }
+
+          .sidebar {
+            width: 100%;
+            flex-direction: row;
+            overflow-x: auto;
+          }
+
+          .sidebar button {
+            flex: 1;
+            white-space: nowrap;
+          }
+        }
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <div class="left-info">
+        <h2>Librarian Dashboard</h2>
+    </div>
+    <button class="logout-btn" onclick="logoutUser()">Logout</button>
+</div>
+
+<div class="main">
+    <div class="sidebar">
+        <button onclick="showUploadForm()">Upload Book</button>
+        <button onclick="window.location.href='LibraryBooks.html'">Update Book</button>
+        <button disabled>Delete Book</button>
+        <button onclick="window.location.href='issuedBook.html'">Issue Book</button>
+        <button onclick="window.location.href='subMissionBook.html'">Submit Book</button>
+    </div>
+
+    <div class="content" id="content">
+        <p>Please choose an action from the left menu to manage library operations.</p>
+    </div>
+</div>
+
+<script>
+    // Token check and role validation
+    const token = localStorage.getItem("authToken");
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const expiry = payload.exp;
+        const role = payload.role;
+        const now = Math.floor(Date.now() / 1000);
+
+        if (now > expiry || role !== "librarian") {
+          localStorage.removeItem("authToken");
+          window.location.href = "../librarianLogin.html";
+        }
+      } catch (e) {
+        console.error("Invalid token:", e);
+        window.location.href = "../librarianLogin.html";
+      }
+    } else {
+      window.location.href = "../librarianLogin.html";
+    }
+
+    // Upload Book Form Renderer
+    function showUploadForm() {
+      document.getElementById("content").innerHTML = `
+        <h3>Upload Book</h3>
+        <form id="bookForm">
+          <label>Book Name</label>
+          <input name="name" required>
+
+          <label>Author</label>
+          <input name="author" required>
+
+          <label>Publisher</label>
+          <input name="publisher" required>
+
+          <label>Published Year</label>
+          <input type="number" name="published_year" required>
+
+          <label>Edition</label>
+          <input name="edition" required>
+
+          <label>Genre</label>
+          <input name="genre" required>
+
+          <label>Total Copies</label>
+          <input type="number" name="total_copies" required>
+
+          <label>Available Copies</label>
+          <input type="number" name="available_copies" required>
+
+          <label>Description</label>
+          <textarea name="description" rows="3"></textarea>
+
+          <label>Location</label>
+          <input name="location" >
+
+          <button type="submit" class="submit-btn">Submit</button>
+        </form>
+      `;
+
+      document.getElementById("bookForm").onsubmit = async function(e) {
+        e.preventDefault();
+
+        const formData = new FormData(e.target);
+        const jsonData = {};
+        formData.forEach((value, key) => jsonData[key] = value);
+
+        try {
+            const response = await fetch("http://127.0.0.1:5005/upload-book", {
+                method: "POST",
+                headers: {
+                    Authorization: "Bearer " + token,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(jsonData)
+            });
+
+            const data = await response.json();
+
+            if (response.ok) {
+                alert(data.message);
+                e.target.reset()
+
+            } else {
+                alert("Error: " + (data.message || "Something went wrong."));
+            }
+
+        } catch (error) {
+            alert("Network Error: " + error.message);
+        }
+      }
+    }
+
+
+
+    // Logout Function
+    async function logoutUser() {
+      try {
+        const response = await fetch("http://127.0.0.1:5005/librarian-logout", {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer " + token,
+            "Content-Type": "application/json"
+          }
+        });
+        const data = await response.json();
+        alert(data.message || "Logout successful");
+      } catch (error) {
+        console.error("Logout error:", error);
+        alert("Logout failed. Try again.");
+      } finally {
+        localStorage.removeItem("authToken");
+        window.location.href = "../librarianLogin.html";
+      }
+    }
+</script>
+
+</body>
+</html>
