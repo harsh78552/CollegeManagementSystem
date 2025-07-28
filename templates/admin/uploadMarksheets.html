@@ -5,6 +5,22 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Student Marksheet Form</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;600&display=swap" rel="stylesheet"/>
+    <script>
+        const token = localStorage.getItem("authToken");
+         if (token) {
+           const payload = JSON.parse(atob(token.split('.')[1]));
+           const expiry = payload.exp;
+           const role = payload.role;
+           const now = Math.floor(Date.now() / 1000);
+
+           if (now > expiry||role!=="admin") {
+             localStorage.removeItem("authToken");
+             window.location.href = "adminLogin.html";
+           }
+         } else {
+           window.location.href = "adminLogin.html";
+         }
+    </script>
     <style>
         * {
           box-sizing: border-box;
@@ -114,7 +130,7 @@
     <h2>Student Marksheet Submission</h2>
     <form id="marksheetForm" autocomplete="off">
         <!-- Dummy hidden input to confuse Chrome autofill -->
-        <input type="text" name="hidden-field" autocomplete="off" style="display:none" />
+        <input type="text" name="hidden-field" autocomplete="off" style="display:none"/>
 
         <div class="student-info">
             <div>
@@ -137,14 +153,7 @@
                 <label for="branch">Branch</label>
                 <input type="text" id="branch" name="branch" required autocomplete="new-password"/>
             </div>
-<<<<<<< HEAD
 
-=======
-<!--            <div>-->
-<!--                <label for="section">Section</label>-->
-<!--                <input type="text" id="section" name="section" required autocomplete="new-password"/>-->
-<!--            </div>-->
->>>>>>> c042494b61baa079d55965b8540aceedbce576e4
         </div>
 
         <table>
@@ -164,6 +173,7 @@
 </div>
 
 <script>
+
     const tbody = document.querySelector("tbody");
 
     // Generate 15 subject input rows
@@ -186,10 +196,8 @@
         semester: form.semester.value.trim(),
         batch: form.batch.value.trim(),
         branch: form.branch.value.trim(),
-<<<<<<< HEAD
-=======
-<!--        section: form.section.value.trim(),-->
->>>>>>> c042494b61baa079d55965b8540aceedbce576e4
+
+
         subjects: [],
       };
 
@@ -200,13 +208,6 @@
         if (subject && marks !== "") {
           data.subjects.push({ subject, marks: parseInt(marks) });
         }
-      }
-
-      const token = localStorage.getItem("authToken");
-
-      if (!token) {
-        alert("Token not found. Please login first.");
-        return;
       }
 
       try {

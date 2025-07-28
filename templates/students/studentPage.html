@@ -10,7 +10,7 @@
 
         function redirectToLogin() {
           localStorage.removeItem("authToken");
-          window.location.href = "../students_login.html";
+          window.location.href = "students_login.html";
         }
 
         if (token) {
@@ -176,7 +176,7 @@
         const data = await res.json();
         studentName.textContent = "Welcome, " + data.name;
       } catch {
-        window.location.replace("../students_login.html");
+        window.location.replace("students_login.html");
       }
 
       if (localStorage.getItem("theme") === "dark") {
@@ -201,7 +201,7 @@
         });
       } finally {
         localStorage.removeItem("authToken");
-        window.location.replace("../students_login.html");
+        window.location.replace("students_login.html");
       }
     }
 

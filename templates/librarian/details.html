@@ -12,10 +12,10 @@
            const now = Math.floor(Date.now() / 1000);
            if (now > expiry||role!=="librarian") {
              localStorage.removeItem("authToken");
-             window.location.href = "../librarianLogin.html";
+             window.location.href = "librarianLogin.html";
            }
          } else {
-           window.location.href = "../librarianLogin.html";
+           window.location.href = "librarianLogin.html";
          }
     </script>
     <style>

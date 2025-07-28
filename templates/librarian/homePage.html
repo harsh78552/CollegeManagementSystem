@@ -182,14 +182,14 @@
 
         if (now > expiry || role !== "librarian") {
           localStorage.removeItem("authToken");
-          window.location.href = "../librarianLogin.html";
+          window.location.href = "librarianLogin.html";
         }
       } catch (e) {
         console.error("Invalid token:", e);
-        window.location.href = "../librarianLogin.html";
+        window.location.href = "librarianLogin.html";
       }
     } else {
-      window.location.href = "../librarianLogin.html";
+      window.location.href = "librarianLogin.html";
     }
 
     // Upload Book Form Renderer
@@ -283,7 +283,7 @@
         alert("Logout failed. Try again.");
       } finally {
         localStorage.removeItem("authToken");
-        window.location.href = "../librarianLogin.html";
+        window.location.href = "librarianLogin.html";
       }
     }
 </script>

@@ -93,7 +93,7 @@
             const data = await response.json();
             if (response.ok) {
                 localStorage.setItem("authToken", data.access_token);
-                window.location.href = "./librarian/homePage.html"; // Redirect after successful login
+                window.location.href = "homePage.html"; // Redirect after successful login
             } else {
                 document.getElementById("message").innerText = "Login failed: " + data.message;
                 document.getElementById("message").style.color = "red";

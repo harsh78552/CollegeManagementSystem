@@ -5,6 +5,22 @@
     <title>Admin Upload Page</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet"/>
+    <script>
+        const token = localStorage.getItem("authToken");
+         if (token) {
+           const payload = JSON.parse(atob(token.split('.')[1]));
+           const expiry = payload.exp;
+           const role = payload.role;
+           const now = Math.floor(Date.now() / 1000);
+
+           if (now > expiry||role!=="admin") {
+             localStorage.removeItem("authToken");
+             window.location.href = "adminLogin.html";
+           }
+         } else {
+           window.location.href = "adminLogin.html";
+         }
+    </script>
     <style>
         * {
           box-sizing: border-box;

@@ -2,8 +2,28 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8"/>
-    <title>Book  Submit Form</title>
+    <title>Book Submit Form</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <script>const token = localStorage.getItem("authToken");
+    if (token) {
+      try {
+        const payload = JSON.parse(atob(token.split('.')[1]));
+        const expiry = payload.exp;
+        const role = payload.role;
+        const now = Math.floor(Date.now() / 1000);
+
+        if (now > expiry || role !== "librarian") {
+          localStorage.removeItem("authToken");
+          window.location.href = "librarianLogin.html";
+        }
+      } catch (e) {
+        console.error("Invalid token:", e);
+        window.location.href = "librarianLogin.html";
+      }
+    } else {
+      window.location.href = "librarianLogin.html";
+    }
+    </script>
     <style>
         body {
           font-family: 'Segoe UI', sans-serif;

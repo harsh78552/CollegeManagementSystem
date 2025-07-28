@@ -187,10 +187,10 @@
 
             if (now > expiry||role!=="admin") {
               localStorage.removeItem("authToken");
-              window.location.href = "../adminLogin.html";
+              window.location.href = "adminLogin.html";
             }
           } else {
-            window.location.href = "../adminLogin.html";
+            window.location.href = "adminLogin.html";
           }
 
     const facultyMenuBtn = document.getElementById("facultyMenuBtn");
@@ -202,7 +202,7 @@
 
     // Load faculty name
     window.onload = async () => {
-      if (!token) return window.location.href = "../adminLogin.html";
+      if (!token) return window.location.href = "adminLogin.html";
     };
 
     facultyMenuBtn.addEventListener("click", () => displayFacultyMenu());
@@ -308,7 +308,7 @@
         alert("Logout failed. Try again.");
       } finally {
         localStorage.removeItem("authToken");
-        window.location.href = "../adminLogin.html";
+        window.location.href = "adminLogin.html";
       }
     }
     const announcementBtn = document.getElementById("announcementBtn");

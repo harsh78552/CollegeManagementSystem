@@ -13,10 +13,10 @@
            const now = Math.floor(Date.now() / 1000);
            if (now > expiry||role!=="student") {
              localStorage.removeItem("authToken");
-             window.location.href = "../students_login.html";
+             window.location.href = "students_login.html";
            }
          } else {
-           window.location.href = "../students_login.html";
+           window.location.href = "students_login.html";
          }
     </script>
     <style>
